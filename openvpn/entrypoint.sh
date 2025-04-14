@@ -5,6 +5,10 @@ PORT=${PORT:-1194}
 PROTO=${PROTO:-udp}
 MGMT_PORT=${MGMT_PORT:-5092}
 DATA_DIR=${DATA_DIR:-/mnt}
+DNS1=${DNS1:-8.8.8.8}
+DNS2=${DNS2:-8.8.4.4}
+VPN_SUBNET=${VPN_SUBNET:-10.51.28.0}
+VPN_NETMASK=${VPN_NETMASK:-255.255.255.0}
 
 EASYRSA_DIR="$DATA_DIR/easy-rsa"
 
@@ -91,8 +95,8 @@ topology subnet
 server 10.51.28.0 255.255.255.0
 ifconfig-pool-persist /etc/openvpn/ipp.txt
 
-push "dhcp-option DNS 8.8.8.8"
-push "dhcp-option DNS 8.8.4.4"
+push "dhcp-option DNS $DNS1"
+push "dhcp-option DNS $DNS2"
 push "block-outside-dns"
 push "redirect-gateway def1"
 

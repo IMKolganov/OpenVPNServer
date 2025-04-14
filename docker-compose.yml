@@ -18,6 +18,10 @@ services:
       PORT: "1195"
       PROTO: udp
       MGMT_PORT: "5095"
+      DNS1: 8.8.8.8
+      DNS2: 8.8.4.4
+      VPN_SUBNET: 10.51.28.0
+      VPN_NETMASK: 255.255.255.0
     networks:
       - backend_network
 
