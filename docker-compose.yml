@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  openvpn_main_udp:
+    build:
+      context: ./openvpn
+      dockerfile: Dockerfile
+    container_name: openvpn_main_udp
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    volumes:
+      - openvpn_data_tcp:/openvpn-tcp
+      - openvpn_data_udp:/openvpn-udp
+      - geolite_data:/app/GeoLite
+      - openvpn_main_data_udp:/openvpn-main-udp
+    ports:
+      - "1195:1195/udp"
+    environment:
+      DATA_DIR: /openvpn-main-udp
+      PORT: "1195"
+      PROTO: udp
+      MGMT_PORT: "5095"
+    networks:
+      - backend_network
+
+volumes:
+  openvpn_data_tcp:
+    external: true
+  openvpn_data_udp:
+    external: true
+  geolite_data:
+    external: true
+  openvpn_main_data_udp:
+
+networks:
+  backend_network:
+    external: true
