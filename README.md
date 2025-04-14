@@ -98,3 +98,86 @@ Certificates and keys are auto-generated if not found. The default `server.conf`
 ## 🛠 Maintainer
 
 Developed by [you ❤️]. If you use this setup in your own infrastructure, feel free to fork or improve.
+---
+
+## 🔐 Generating a client `.ovpn` file
+
+To create a client certificate and generate an `.ovpn` file, you can use the following script inside the container:
+
+### 📜 Example script: `generate-client.sh`
+
+```bash
+#!/bin/bash
+set -e
+
+CLIENT_NAME=$1
+EASYRSA_DIR=/openvpn-main-udp/easy-rsa
+OUTPUT_DIR=/openvpn-main-udp/clients/$CLIENT_NAME
+
+if [ -z "$CLIENT_NAME" ]; then
+    echo "Usage: $0 <client-name>"
+    exit 1
+fi
+
+cd "$EASYRSA_DIR"
+export EASYRSA_PKI="$EASYRSA_DIR/pki"
+export EASYRSA_BATCH=1
+
+./easyrsa gen-req "$CLIENT_NAME" nopass
+./easyrsa sign-req client "$CLIENT_NAME"
+
+mkdir -p "$OUTPUT_DIR"
+
+cp "$EASYRSA_PKI/issued/$CLIENT_NAME.crt" "$OUTPUT_DIR/"
+cp "$EASYRSA_PKI/private/$CLIENT_NAME.key" "$OUTPUT_DIR/"
+cp "$EASYRSA_PKI/ca.crt" "$OUTPUT_DIR/"
+cp "$EASYRSA_PKI/ta.key" "$OUTPUT_DIR/"
+
+cat > "$OUTPUT_DIR/$CLIENT_NAME.ovpn" <<EOF
+client
+dev tun
+proto udp
+remote your-server-address 1195
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+remote-cert-tls server
+tls-crypt ta.key
+cipher AES-256-CBC
+auth SHA256
+verb 3
+
+<ca>
+$(cat "$OUTPUT_DIR/ca.crt")
+</ca>
+
+<cert>
+$(cat "$OUTPUT_DIR/$CLIENT_NAME.crt")
+</cert>
+
+<key>
+$(cat "$OUTPUT_DIR/$CLIENT_NAME.key")
+</key>
+
+<tls-crypt>
+$(cat "$OUTPUT_DIR/ta.key")
+</tls-crypt>
+EOF
+
+echo "✅ Client config created at: $OUTPUT_DIR/$CLIENT_NAME.ovpn"
+```
+
+> Replace `your-server-address` with your actual public domain or IP.
+
+### 🚀 Usage inside the container:
+
+```bash
+docker exec -it openvpn_main_udp bash
+./generate-client.sh alice
+```
+
+The resulting `.ovpn` file will be located at:
+```
+/openvpn-main-udp/clients/alice/alice.ovpn
+```
