@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   openvpn_main_udp:
     build:
@@ -12,9 +10,6 @@ services:
     devices:
       - "/dev/net/tun:/dev/net/tun"
     volumes:
-      - openvpn_data_tcp:/openvpn-tcp
-      - openvpn_data_udp:/openvpn-udp
-      - geolite_data:/app/GeoLite
       - openvpn_main_data_udp:/openvpn-main-udp
     ports:
       - "1195:1195/udp"
@@ -27,14 +22,9 @@ services:
       - backend_network
 
 volumes:
-  openvpn_data_tcp:
-    external: true
-  openvpn_data_udp:
-    external: true
-  geolite_data:
-    external: true
   openvpn_main_data_udp:
 
 networks:
   backend_network:
     external: true
+    name: openvpngatemonitor_backend_network
